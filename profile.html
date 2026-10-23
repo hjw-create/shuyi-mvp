@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>个人资料 · 书易</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="topbar"><a class="back" href="mine.html">‹</a><span class="title">个人资料</span></div>
+<div class="form" style="margin-top:10px">
+  <div class="field"><label>昵称</label><input id="p-name" placeholder="你的昵称"></div>
+  <div class="field"><label>专业</label><input id="p-major" placeholder="如:计算机 · 大三"></div>
+  <div class="field"><label>校区</label>
+    <select id="p-campus"><option>主校区</option><option>东校区</option><option>南校区</option></select>
+  </div>
+</div>
+<div class="btn-row"><button class="btn" onclick="save()">保存</button></div>
+<script src="js/data.js"></script>
+<script>
+const info = myInfo();
+document.getElementById("p-name").value = info.name;
+document.getElementById("p-major").value = info.major;
+document.getElementById("p-campus").value = info.campus;
+function save() {
+  saveMyInfo({
+    name: document.getElementById("p-name").value.trim() || "同学",
+    major: document.getElementById("p-major").value.trim() || "未设置专业",
+    campus: document.getElementById("p-campus").value
+  });
+  toast("已保存");
+  setTimeout(() => go("mine.html"), 500);
+}
+</script>
+</body>
+</html>
