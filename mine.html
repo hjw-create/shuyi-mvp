@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>我的 · 书易</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">👤 我的</span>
+</div>
+
+<div class="section-block" style="display:flex;gap:12px;align-items:center;margin-top:14px" id="infoBox"></div>
+
+<div class="section-title">
+  <span>我发布的书籍</span>
+  <a class="more" href="publish.html">+ 发布</a>
+</div>
+<div id="mineList"></div>
+
+<div class="section-title"><span>我的订单</span><a class="more" href="orders.html">查看全部 ›</a></div>
+<div id="orderList"></div>
+
+<div class="bottom-nav">
+  <a href="index.html"><span class="ic">🏠</span>首页</a>
+  <a href="publish.html"><span class="ic">➕</span>发布</a>
+  <a href="mine.html" class="active"><span class="ic">👤</span>我的</a>
+</div>
+
+<script src="js/data.js"></script>
+<script>
+function shade(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, (n >> 16) - 45), g = Math.max(0, ((n >> 8) & 255) - 45), b = Math.max(0, (n & 255) - 45);
+  return "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+}
+
+function render() {
+  const info = myInfo();
+  document.getElementById("infoBox").innerHTML = `
+    <span class="avatar" style="width:50px;height:50px;font-size:24px">🙂</span>
+    <div style="flex:1">
+      <div style="font-weight:800;font-size:16px">${esc(info.name)}</div>
+      <div style="font-size:12px;color:var(--text-2);margin-top:2px">${esc(info.major)} · ${esc(info.campus)}</div>
+    </div>
+    <a class="btn outline sm" href="profile.html">编辑</a>`;
+
+  const mb = myBooks();
+  const ml = document.getElementById("mineList");
+  if (!mb.length) {
+    ml.innerHTML = `<div class="empty"><span class="big">📚</span>你还没发布过书<br><a href="publish.html" style="color:var(--primary);font-weight:700">去发布第一本 ›</a></div>`;
+  } else {
+    ml.innerHTML = mb.map(b => `
+      <a class="list-card" href="detail.html?id=${b.id}">
+        <div class="thumb" style="background:linear-gradient(160deg,${b.color},${shade(b.color)})">${b.emoji}</div>
+        <div class="body">
+          <div class="t">${esc(b.title)}</div>
+          <div class="s">${esc(b.cond)} · ${esc(b.loc)}</div>
+          <div class="p" style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:var(--danger)">¥${b.price}</span>
+            <span class="badge selling">${b.sold ? "已售" : "在售"}</span>
+          </div>
+        </div>
+      </a>`).join("");
+  }
+
+  const ol = document.getElementById("orderList");
+  const os = orders();
+  if (!os.length) {
+    ol.innerHTML = `<div class="empty" style="padding:28px 20px"><span class="big">📦</span>还没有订单</div>`;
+  } else {
+    ol.innerHTML = os.slice(0, 3).map(o => {
+      const stMap = { pending: ["待交易", "pending"], done: ["已完成", "done"], cancel: ["已取消", "cancel"] };
+      const [txt, cls] = stMap[o.status] || stMap.pending;
+      return `<a class="list-card" href="order-detail.html?id=${o.id}">
+        <div class="thumb" style="background:linear-gradient(160deg,${o.color},#6b7280)">${o.emoji}</div>
+        <div class="body">
+          <div class="t">${esc(o.title)}</div>
+          <div class="s">${esc(o.loc)} · ${esc(o.time)}</div>
+          <div class="p" style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:var(--danger)">¥${o.price}</span>
+            <span class="badge ${cls}">${txt}</span>
+          </div>
+        </div>
+      </a>`;
+    }).join("");
+  }
+}
+render();
+</script>
+</body>
+</html>
