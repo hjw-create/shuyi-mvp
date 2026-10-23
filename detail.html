@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>书籍详情 · 书易</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">‹</a>
+  <span class="title">书籍详情</span>
+</div>
+
+<div id="app"></div>
+
+<div class="bottom-fixed">
+  <button class="btn" id="orderBtn" onclick="goOrder()">预约面交</button>
+</div>
+
+<script src="js/data.js"></script>
+<script>
+let cur = null;
+
+function shade(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, (n >> 16) - 50), g = Math.max(0, ((n >> 8) & 255) - 50), b = Math.max(0, (n & 255) - 50);
+  return "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+}
+
+function render() {
+  const id = new URLSearchParams(location.search).get("id");
+  cur = bookById(id) || myBooks().find(b => b.id === id);
+  if (!cur) {
+    document.getElementById("app").innerHTML = `<div class="empty"><span class="big">😕</span>这本书不存在或已下架</div>`;
+    document.getElementById("orderBtn").style.display = "none";
+    return;
+  }
+  const p = document.getElementById("app");
+  p.innerHTML = `
+    <div class="hero-cover" style="background:linear-gradient(160deg,${cur.color},${shade(cur.color)})">
+      <span class="bk-emoji">${cur.emoji}</span>
+    </div>
+    <div class="detail-card">
+      <div class="name">${esc(cur.title)}</div>
+      <div class="author">${esc(cur.author)} · ${esc(cur.course)}</div>
+      <div class="price-row">
+        <span class="price">${cur.price}</span>
+        <span class="orig">¥${cur.orig}</span>
+        <span class="saved">比原价省${Math.round((1 - cur.price / cur.orig) * 100)}%</span>
+      </div>
+      <div class="specs">
+        <div class="spec"><b>${esc(cur.cond)}</b><span>品相</span></div>
+        <div class="spec"><b>${esc(cur.time)}</b><span>上架</span></div>
+        <div class="spec"><b>${cur.sold ? "已售" : "在售"}</b><span>状态</span></div>
+      </div>
+    </div>
+    <div class="section-block">
+      <h3>💬 书籍描述</h3>
+      <p>${esc(cur.desc)}</p>
+    </div>
+    <div class="section-block">
+      <h3>🧑‍🎓 卖家</h3>
+      <div class="seller-row">
+        <span class="avatar">${cur.seller ? cur.seller[0] : "同"}</span>
+        <div>
+          <b>${esc(cur.seller)}</b>
+          <div style="font-size:12px;color:var(--text-2)">${esc(cur.sellerMajor)} · ${esc(cur.loc)}</div>
+        </div>
+      </div>
+    </div>
+    ${cur.isMine ? `<div class="section-block"><h3>⏳ 我发布的这本书</h3><p>这是你发布的书籍,可在「我的-我发布的书籍」管理。</p></div>` : ""}
+  `;
+}
+
+function goOrder() {
+  if (cur.sold) { toast("这本书已售出"); return; }
+  if (cur.isMine) { toast("这是你自己发布的书"); return; }
+  go("order.html?id=" + cur.id);
+}
+
+render();
+</script>
+</body>
+</html>
