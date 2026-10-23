@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>发布闲置 · 书易</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">‹</a>
+  <span class="title">发布闲置</span>
+</div>
+
+<div class="form">
+  <div class="field">
+    <label>书本封面(选填)</label>
+    <div class="upload-box" onclick="pickEmoji()">
+      <span class="big" id="pvEmoji">📚</span>
+      点击选择封面图标
+    </div>
+  </div>
+  <div class="field">
+    <label>书名 *</label>
+    <input id="f-title" placeholder="输入书名,如:高等数学(上册)">
+  </div>
+  <div class="field">
+    <label>作者</label>
+    <input id="f-author" placeholder="作者 / 出版社">
+  </div>
+  <div class="field">
+    <label>课程 / 类别</label>
+    <select id="f-course">
+      <option value="">选一个标签</option>
+      <option>高数</option><option>线代</option><option>概率论</option><option>大学物理</option>
+      <option>数据结构</option><option>C语言</option><option>计算机网络</option><option>大学英语</option>
+      <option>考研英语</option><option>经济学</option><option>会计学</option><option>现代汉语</option>
+      <option>思政</option><option>马原</option><option>其他</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>品相</label>
+    <select id="f-cond">
+      <option>九五成新</option><option>九成新</option><option>八成新</option>
+      <option>七五成新</option><option>七成新</option><option>有笔记划重点</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>原价(元)</label>
+    <input id="f-orig" type="number" min="0" placeholder="如:49.9">
+  </div>
+  <div class="field">
+    <label>转让价(元) *</label>
+    <input id="f-price" type="number" min="0" placeholder="如:15">
+  </div>
+  <div class="field">
+    <label>面交地点</label>
+    <select id="f-loc">
+      ${["二食堂门口","图书馆东门","三号宿舍楼下","一教大厅","体育馆门口"].map(l => `<option>${l}</option>`).join("")}
+    </select>
+  </div>
+  <div class="field">
+    <label>描述</label>
+    <textarea id="f-desc" placeholder="写写书的状态、有没有笔记、适合哪些同学…"></textarea>
+  </div>
+</div>
+
+<div class="btn-row">
+  <button class="btn ghost" onclick="go('index.html')">取消</button>
+  <button class="btn" onclick="publish()">发布</button>
+</div>
+
+<script src="js/data.js"></script>
+<script>
+const EMOJIS = ["📚","📖","📐","🧮","📈","🌳","⚡","💻","📝","🧾","🏛️","⭐","🕸️","🎲","✍️","🕊️","🔬","🎨","💡","📌"];
+let emoji = "📚";
+function pickEmoji() {
+  const cur = emoji;
+  emoji = EMOJIS[(EMOJIS.indexOf(cur) + 1) % EMOJIS.length];
+  document.getElementById("pvEmoji").textContent = emoji;
+  toast(`封面:${emoji}(再点换一个)`);
+}
+function publish() {
+  const title = document.getElementById("f-title").value.trim();
+  const price = parseFloat(document.getElementById("f-price").value);
+  if (!title) { toast("请输入书名"); return; }
+  if (isNaN(price) || price < 0) { toast("请输入有效价格"); return; }
+  const orig = parseFloat(document.getElementById("f-orig").value) || Math.max(price, 30);
+  const colors = ["#2f7d4f","#4f7cc9","#e07a5f","#6d597a","#3d9970","#2a9d8f","#f4a261","#9b5de5","#577590","#e76f51","#457b9d","#a98467"];
+  const book = {
+    id: uid(),
+    title,
+    author: document.getElementById("f-author").value.trim() || "校内同学",
+    orig, price,
+    course: document.getElementById("f-course").value || "其他",
+    cond: document.getElementById("f-cond").value,
+    emoji,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    tag: "自发布",
+    desc: document.getElementById("f-desc").value.trim() || `校内自出,${document.getElementById("f-cond").value},面交可验书,支持退换。`,
+    seller: "我",
+    sellerMajor: myInfo().major,
+    loc: document.getElementById("f-loc").value,
+    sold: false,
+    time: "刚刚",
+    isMine: true
+  };
+  const list = myBooks();
+  list.unshift(book);
+  saveMyBooks(list);
+  toast("发布成功!");
+  setTimeout(() => go("mine.html"), 600);
+}
+</script>
+</body>
+</html>
