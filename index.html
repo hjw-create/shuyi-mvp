@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>书易 · 校内二手书交易</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">📚 书易</span>
+  <span style="font-size:12px;color:var(--text-3);margin-left:4px">校内二手书</span>
+  <span class="right"><a href="publish.html" style="font-size:13px;color:var(--primary);font-weight:700">+ 发布</a></span>
+</div>
+
+<div class="searchbar">
+  <span class="ico">🔍</span>
+  <input id="q" type="search" placeholder="搜书名 / 课程 / 作者" autocomplete="off">
+</div>
+
+<div class="chips" id="chips"></div>
+
+<div class="banner">
+  <h2>毕业季 · 教材流转</h2>
+  <p>同校面交 · 无快递 · 学长学姐直出</p>
+  <span class="emoji">🎓</span>
+</div>
+
+<div class="section-title">
+  <span>在售好书</span>
+  <span class="more" id="count"></span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="bottom-nav">
+  <a href="index.html" class="active"><span class="ic">🏠</span>首页</a>
+  <a href="publish.html"><span class="ic">➕</span>发布</a>
+  <a href="mine.html"><span class="ic">👤</span>我的</a>
+</div>
+
+<script src="js/data.js"></script>
+<script>
+let activeCat = "all";
+let keyword = "";
+
+function renderChips() {
+  document.getElementById("chips").innerHTML = CATS.map(c =>
+    `<button class="chip ${c.id === activeCat ? "active" : ""}" onclick="setCat('${c.id}')">${c.name}</button>`
+  ).join("");
+}
+function setCat(id) { activeCat = id; renderChips(); renderGrid(); }
+
+function allBooks() {
+  const mine = myBooks().map(b => ({ ...b, isMine: true }));
+  return [...mine, ...BOOKS];
+}
+
+function renderGrid() {
+  const list = allBooks().filter(b => {
+    const catOk = activeCat === "all" || b.tag === activeCat || (b.course && b.course.includes(activeCat));
+    const kw = keyword.trim().toLowerCase();
+    const kwOk = !kw || [b.title, b.author, b.course, b.seller].join(" ").toLowerCase().includes(kw);
+    return catOk && kwOk && !b.sold;
+  });
+  const grid = document.getElementById("grid");
+  if (!list.length) {
+    grid.innerHTML = "";
+    grid.insertAdjacentHTML("afterend", `<div class="empty"><span class="big">🔍</span>没找到这本书,换个关键词试试</div>`);
+    document.getElementById("count").textContent = "";
+    return;
+  }
+  document.querySelectorAll(".empty").forEach(e => e.remove());
+  grid.innerHTML = list.map(b => `
+    <a class="book-card" href="detail.html?id=${b.id}">
+      <div class="cover" style="background:linear-gradient(160deg,${b.color},${shade(b.color)})">
+        <span class="tag">${esc(b.cond)}</span>
+        <span class="bk-emoji">${b.emoji}</span>
+        <span class="bk-title">${esc(b.title)}</span>
+      </div>
+      <div class="book-info">
+        <div class="name">${esc(b.title)}</div>
+        <div class="meta">${esc(b.author)} · ${esc(b.loc || "校内面交")}</div>
+        <div class="price-row">
+          <span class="price">${b.price}</span>
+          <span class="orig">${b.orig}</span>
+          <span class="saved">省${Math.round((1 - b.price / b.orig) * 100)}%</span>
+        </div>
+      </div>
+    </a>`).join("");
+  document.getElementById("count").textContent = `共 ${list.length} 本`;
+}
+
+function shade(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, (n >> 16) - 40), g = Math.max(0, ((n >> 8) & 255) - 40), b = Math.max(0, (n & 255) - 40);
+  return "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
+}
+
+document.getElementById("q").addEventListener("input", e => { keyword = e.target.value; renderGrid(); });
+renderChips();
+renderGrid();
+</script>
+</body>
+</html>
